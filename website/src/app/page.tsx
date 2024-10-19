@@ -22,7 +22,7 @@ import {
 import { AnchorProvider, BN, Program, setProvider } from "@coral-xyz/anchor";
 import idl from "@/solana/taskr-idl.json";
 import type { Taskr } from "@/solana/taskr-types";
-import { PlusCircle, X, Ghost, Loader2 } from "lucide-react";
+import { PlusCircle, X, Ghost, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
@@ -207,25 +207,25 @@ export default function Page() {
     }
 
     return (
-        <div className="min-h-screen bg-black text-white p-6 overflow-hidden relative">
+        <div className="min-h-screen bg-black text-white p-4 sm:p-6 overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxsaW5lIHgxPSIwIiB5PSIwIiB4Mj0iMCIgeTI9IjQwIiBzdHJva2U9IiMxNEYxOTUiIHN0cm9rZS13aWR0aD0iMC41Ii8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3BhdHRlcm4pIiBvcGFjaXR5PSIwLjA1Ii8+PC9zdmc+')] opacity-50"></div>
-            <div className="max-w-6xl mx-auto relative z-10">
-                <header className="flex justify-between items-center mb-12">
-                    <div>
-                        <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#14F195] to-[#9945FF]">
+            <div className="max-w-7xl mx-auto relative z-10">
+                <header className="flex flex-col sm:flex-row justify-between items-center mb-8 sm:mb-12">
+                    <div className="mb-4 sm:mb-0 text-center sm:text-left">
+                        <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#14F195] to-[#9945FF]">
                             Taskr on SOL
                         </h1>
-                        <p className="text-gray-400 mt-2 text-lg">
+                        <p className="text-gray-400 mt-2 text-base sm:text-lg">
                             Decentralized Task Management
                         </p>
                     </div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
                         <Dialog
                             open={isCreateProjectOpen}
                             onOpenChange={setIsCreateProjectOpen}
                         >
                             <DialogTrigger asChild>
-                                <Button className="bg-[#14F195] text-black hover:bg-[#14F195]/90 transition-all duration-300">
+                                <Button className="w-full sm:w-auto bg-[#14F195] text-black hover:bg-[#14F195]/90 transition-all duration-300">
                                     Create Project
                                 </Button>
                             </DialogTrigger>
@@ -357,11 +357,25 @@ export default function Page() {
                     </div>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 min-h-[60vh]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-12">
                     {isLoading ? (
-                        <div className="col-span-3 flex flex-col items-center justify-center h-full text-gray-400">
+                        <div className="col-span-full flex flex-col items-center justify-center h-[60vh] text-gray-400">
                             <Loader2 size={64} className="mb-4 animate-spin" />
                             <p className="text-xl">Loading projects...</p>
+                        </div>
+                    ) : !wallet ? (
+                        <div className="col-span-full flex flex-col items-center justify-center h-[60vh] text-gray-400">
+                            <AlertCircle
+                                size={64}
+                                className="mb-4 stroke-[1.5]"
+                            />
+                            <p className="text-lg sm:text-xl text-center mb-4">
+                                Wallet not connected
+                            </p>
+                            <p className="text-base text-center text-gray-500 mb-6">
+                                Please connect your wallet to view your projects
+                            </p>
+                            <WalletMultiButton />
                         </div>
                     ) : projects.length > 0 ? (
                         projects.map((project, index) => (
@@ -376,26 +390,27 @@ export default function Page() {
                             >
                                 <a
                                     href={`/project/${project.publicKey.toString()}`}
+                                    className="block h-full"
                                 >
-                                    <Card className="hover:cursor-pointer bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-lg border border-gray-800 rounded-xl overflow-hidden group hover:shadow-lg hover:shadow-[#14F195]/20 transition-all duration-300">
-                                        <CardHeader className="border-b border-gray-800 pb-4">
-                                            <CardTitle className="text-xl font-semibold text-[#14F195] flex justify-between items-center">
+                                    <Card className="h-full hover:cursor-pointer bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-lg border border-gray-800 rounded-xl overflow-hidden group hover:shadow-lg hover:shadow-[#14F195]/20 transition-all duration-300">
+                                        <CardHeader className="border-b border-gray-800 pb-3">
+                                            <CardTitle className="text-base sm:text-lg font-semibold text-[#14F195] truncate">
                                                 {project.name}
                                             </CardTitle>
                                         </CardHeader>
-                                        <CardContent className="pt-4">
-                                            <div className="flex justify-between items-center mb-4">
-                                                <span className="text-gray-400">
+                                        <CardContent className="pt-3 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs sm:text-sm text-gray-400">
                                                     Stake:
                                                 </span>
-                                                <span className="font-medium text-[#14F195]">
+                                                <span className="text-xs sm:text-sm font-medium text-[#14F195]">
                                                     {project.amount /
                                                         LAMPORTS_PER_SOL}{" "}
                                                     SOL
                                                 </span>
                                             </div>
                                             <div className="relative pt-1">
-                                                <div className="flex mb-2 items-center justify-between">
+                                                <div className="flex mb-1 items-center justify-between">
                                                     <div>
                                                         <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-[#14F195] bg-[#14F195]/20">
                                                             Progress
@@ -417,7 +432,7 @@ export default function Page() {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-[#14F195]/20">
+                                                <div className="overflow-hidden h-2 mb-1 text-xs flex rounded bg-[#14F195]/20">
                                                     <div
                                                         style={{
                                                             width: `${
@@ -441,9 +456,9 @@ export default function Page() {
                             </motion.div>
                         ))
                     ) : (
-                        <div className="col-span-3 flex flex-col items-center justify-center h-full text-gray-400">
+                        <div className="col-span-full flex flex-col items-center justify-center h-[60vh] text-gray-400">
                             <Ghost size={64} className="mb-4 stroke-[1.5]" />
-                            <p className="text-xl">
+                            <p className="text-lg sm:text-xl text-center">
                                 No projects yet. Create one to get started!
                             </p>
                         </div>
