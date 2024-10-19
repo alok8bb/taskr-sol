@@ -4,6 +4,7 @@ import "./globals.css";
 import React from "react";
 import dynamic from "next/dynamic";
 import ClientSideStyles from "@/components/ClientSideStyles";
+import { Toaster } from "@/components/ui/toaster";
 
 const AppWalletProvider = dynamic(
     () => import("@/components/AppWalletProvider"),
@@ -41,6 +42,7 @@ export default function RootLayout({
             >
                 <ClientSideStyles />
                 <AppWalletProvider>{children}</AppWalletProvider>
+                <Toaster />
             </body>
         </html>
     );

@@ -1,14 +1,13 @@
 use anchor_lang::prelude::*;
 
-declare_id!("t7SQXHqpHNQ71iVZj8AdGpWp7m2g3AqySkRD9kfuGwc");
+declare_id!("tRdyXV9gBC74XFVxLJAbePcupThmd72rNvr9qonx9gX");
 
 #[program]
 pub mod taskr {
-    use anchor_lang::{solana_program::native_token::LAMPORTS_PER_SOL, system_program};
-
     use super::*;
+    use anchor_lang::system_program;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+    pub fn ping(ctx: Context<Ping>) -> Result<()> {
         msg!(
             "👋 Greetings from: Taskr, Contract Address: {:?}",
             ctx.program_id
@@ -30,10 +29,14 @@ pub mod taskr {
             .map(|t| Task {
                 name: t,
                 completed: false,
+                pow: None,
             })
             .collect();
         project.amount = amount;
         lookup.projects.push(project.key());
+        project.owner = *ctx.accounts.signer.key;
+        project.creation_time = Clock::get()?.unix_timestamp;
+
         system_program::transfer(
             CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),
@@ -42,7 +45,7 @@ pub mod taskr {
                     to: ctx.accounts.project.to_account_info(),
                 },
             ),
-            amount * LAMPORTS_PER_SOL,
+            amount,
         )?;
 
         Ok(())
@@ -52,7 +55,7 @@ pub mod taskr {
         let project = &mut ctx.accounts.project;
         let task = &mut project.tasks[task_index as usize];
         task.completed = true;
-        let amount = (project.amount * LAMPORTS_PER_SOL) / project.tasks.len() as u64;
+        let amount = (project.amount) / project.tasks.len() as u64;
         ctx.accounts.project.sub_lamports(amount)?;
         ctx.accounts.signer.add_lamports(amount)?;
 
@@ -61,7 +64,7 @@ pub mod taskr {
 }
 
 #[derive(Accounts)]
-pub struct Initialize {}
+pub struct Ping {}
 
 #[derive(Accounts)]
 #[instruction(name: String)]
@@ -85,6 +88,8 @@ pub struct Project {
     #[max_len(30)]
     name: String,
     amount: u64,
+    owner: Pubkey,
+    creation_time: i64,
 }
 
 #[account]
@@ -93,6 +98,8 @@ pub struct Task {
     #[max_len(30)]
     name: String,
     completed: bool,
+    #[max_len(30)]
+    pow: Option<String>,
 }
 
 #[derive(Accounts)]

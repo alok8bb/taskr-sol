@@ -33,8 +33,8 @@ describe("taskr", () => {
     );
 
     it("Is initialized!", async () => {
-        const tx = await program.methods.initialize().rpc();
-        console.log("Initialization transaction signature", tx);
+        const tx = await program.methods.ping().rpc();
+        console.log("Ping transaction signature", tx);
     });
 
     it("creates a project", async () => {

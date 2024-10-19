@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/taskr.json`.
  */
 export type Taskr = {
-    address: "tPqXUGHcFf8BHdEiBAdMh7htxv3XxVZWoo2zAasBnJK";
+    address: "tRdyXV9gBC74XFVxLJAbePcupThmd72rNvr9qonx9gX";
     metadata: {
         name: "taskr";
         version: "0.1.0";
@@ -55,6 +55,10 @@ export type Taskr = {
                     writable: true;
                     pda: {
                         seeds: [
+                            {
+                                kind: "arg";
+                                path: "name";
+                            },
                             {
                                 kind: "account";
                                 path: "signer";
@@ -106,8 +110,8 @@ export type Taskr = {
             ];
         },
         {
-            name: "initialize";
-            discriminator: [175, 175, 109, 31, 13, 152, 155, 237];
+            name: "ping";
+            discriminator: [173, 0, 94, 236, 73, 133, 225, 153];
             accounts: [];
             args: [];
         }
@@ -159,6 +163,14 @@ export type Taskr = {
                     {
                         name: "amount";
                         type: "u64";
+                    },
+                    {
+                        name: "owner";
+                        type: "pubkey";
+                    },
+                    {
+                        name: "creationTime";
+                        type: "i64";
                     }
                 ];
             };
@@ -175,6 +187,12 @@ export type Taskr = {
                     {
                         name: "completed";
                         type: "bool";
+                    },
+                    {
+                        name: "pow";
+                        type: {
+                            option: "string";
+                        };
                     }
                 ];
             };

@@ -5,10 +5,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-taskr = "t7SQXHqpHNQ71iVZj8AdGpWp7m2g3AqySkRD9kfuGwc"
+taskr = "tRdyXV9gBC74XFVxLJAbePcupThmd72rNvr9qonx9gX"
 
 [programs.devnet]
-taskr = "t7SQXHqpHNQ71iVZj8AdGpWp7m2g3AqySkRD9kfuGwc"
+taskr = "tRdyXV9gBC74XFVxLJAbePcupThmd72rNvr9qonx9gX"
 
 [registry]
 url = "https://api.apr.dev"

@@ -1,14 +1,30 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { AnchorProvider, Program, setProvider } from "@coral-xyz/anchor";
+import {
+    useAnchorWallet,
+    useConnection,
+    useWallet,
+} from "@solana/wallet-adapter-react";
+import { AnchorProvider, BN, Program, setProvider } from "@coral-xyz/anchor";
 import idl from "@/solana/taskr-idl.json";
 import type { Taskr } from "@/solana/taskr-types";
-import { PublicKey } from "@solana/web3.js";
-import { useState, useEffect } from "react";
+import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { PlusCircle, X } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 type Task = {
     name: string;
@@ -23,15 +39,24 @@ type Project = {
 };
 
 export default function Page() {
-    const { connection } = useConnection();
     const wallet = useAnchorWallet();
 
-    const provider = new AnchorProvider(connection, wallet!, {});
+    const provider = new AnchorProvider(
+        new Connection("https://api.devnet.solana.com"),
+        wallet!,
+        {}
+    );
     setProvider(provider);
 
     const program = new Program(idl as Taskr, provider);
 
     const [projects, setProjects] = useState<Project[]>([]);
+    const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+    const [newProject, setNewProject] = useState({
+        name: "",
+        stake: "",
+        tasks: [""],
+    });
 
     const getProjects = async () => {
         const userPublicKey = wallet?.publicKey;
@@ -75,10 +100,91 @@ export default function Page() {
             setProjects([]);
         }
     };
+    const w = useWallet();
 
     useEffect(() => {
         getProjects();
     }, [wallet]);
+
+    const handleAddTask = () => {
+        setNewProject((prev) => ({ ...prev, tasks: [...prev.tasks, ""] }));
+    };
+
+    const handleTaskChange = (index: number, value: string) => {
+        setNewProject((prev) => {
+            const newTasks = [...prev.tasks];
+            newTasks[index] = value;
+            return { ...prev, tasks: newTasks };
+        });
+    };
+
+    const handleCreateProject = async () => {
+        if (!wallet) {
+            toast({
+                title: "Wallet not connected",
+                description: "Please connect your wallet to create a project.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (
+            !newProject.name.trim() ||
+            !newProject.stake ||
+            newProject.tasks.some((task) => !task.trim())
+        ) {
+            toast({
+                title: "Invalid project details",
+                description: "Please fill in all required fields.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const stake = parseFloat(newProject.stake);
+        if (isNaN(stake) || stake <= 0) {
+            toast({
+                title: "Invalid stake amount",
+                description:
+                    "Please enter a valid stake amount greater than 0.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            console.log("Creating project:", newProject);
+
+            await program.methods
+                .createProject(
+                    newProject.name,
+                    newProject.tasks,
+                    new BN(Number(newProject.stake) * LAMPORTS_PER_SOL)
+                )
+                .rpc();
+
+            toast({
+                title: "Project created",
+                description: "Your new project has been successfully created.",
+            });
+
+            setIsCreateProjectOpen(false);
+            setNewProject({
+                name: "",
+                stake: "",
+                tasks: [""],
+            });
+            getProjects();
+        } catch (error) {
+            console.error("Error creating project:", error);
+            toast({
+                title: "Error",
+                description:
+                    "An error occurred while creating the project. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
 
     const transactions = [
         { address: "0x3289...1230", amount: 3, timestamp: "2 mins ago" },
@@ -92,17 +198,152 @@ export default function Page() {
             <div className="max-w-6xl mx-auto relative z-10">
                 <header className="flex justify-between items-center mb-12">
                     <div>
-                        <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#14F195] to-[#9945FF]">
+                        <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#14F195] to-[#9945FF]">
                             Taskr on SOL
                         </h1>
-                        <p className="text-gray-400 mt-2">
+                        <p className="text-gray-400 mt-2 text-lg">
                             Decentralized Task Management
                         </p>
                     </div>
-                    <WalletMultiButton />
+                    <div className="flex items-center space-x-4">
+                        <Dialog
+                            open={isCreateProjectOpen}
+                            onOpenChange={setIsCreateProjectOpen}
+                        >
+                            <DialogTrigger asChild>
+                                <Button className="bg-[#14F195] text-black hover:bg-[#14F195]/90 transition-all duration-300">
+                                    Create Project
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl max-w-md w-full">
+                                <DialogHeader className="relative">
+                                    <DialogTitle className="text-3xl font-bold text-[#14F195]">
+                                        Create New Project
+                                    </DialogTitle>
+                                    <Button
+                                        className="absolute right-0 top-0 text-gray-400 hover:text-white transition-colors"
+                                        onClick={() =>
+                                            setIsCreateProjectOpen(false)
+                                        }
+                                    >
+                                        <X size={24} />
+                                    </Button>
+                                </DialogHeader>
+                                <div className="space-y-6 mt-8">
+                                    <div>
+                                        <Label
+                                            htmlFor="project-name"
+                                            className="text-sm font-medium text-gray-300 block mb-2"
+                                        >
+                                            Project Name
+                                        </Label>
+                                        <Input
+                                            id="project-name"
+                                            value={newProject.name}
+                                            onChange={(e) =>
+                                                setNewProject((prev) => ({
+                                                    ...prev,
+                                                    name: e.target.value,
+                                                }))
+                                            }
+                                            className="bg-gray-800 border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-[#14F195] focus:border-transparent transition-all"
+                                            placeholder="Enter project name"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label
+                                            htmlFor="project-stake"
+                                            className="text-sm font-medium text-gray-300 block mb-2"
+                                        >
+                                            Stake (SOL)
+                                        </Label>
+                                        <Input
+                                            id="project-stake"
+                                            type="number"
+                                            step="0.000000001"
+                                            min="0"
+                                            value={newProject.stake}
+                                            onChange={(e) =>
+                                                setNewProject((prev) => ({
+                                                    ...prev,
+                                                    stake: e.target.value,
+                                                }))
+                                            }
+                                            className="bg-gray-800 border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-[#14F195] focus:border-transparent transition-all"
+                                            placeholder="Enter stake amount"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label className="text-sm font-medium text-gray-300 block mb-2">
+                                            Tasks
+                                        </Label>
+                                        {newProject.tasks.map((task, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center space-x-2 mt-2"
+                                            >
+                                                <Input
+                                                    value={task}
+                                                    onChange={(e) =>
+                                                        handleTaskChange(
+                                                            index,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    className="bg-gray-800 border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-[#14F195] focus:border-transparent flex-grow"
+                                                    placeholder={`Task ${
+                                                        index + 1
+                                                    }`}
+                                                    required
+                                                />
+                                                {index > 0 && (
+                                                    <Button
+                                                        onClick={() => {
+                                                            const newTasks = [
+                                                                ...newProject.tasks,
+                                                            ];
+                                                            newTasks.splice(
+                                                                index,
+                                                                1
+                                                            );
+                                                            setNewProject(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    tasks: newTasks,
+                                                                })
+                                                            );
+                                                        }}
+                                                        className="bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                                    >
+                                                        <X size={16} />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        ))}
+                                        <Button
+                                            onClick={handleAddTask}
+                                            className="mt-4 bg-[#14F195] text-black font-semibold py-2 px-4 rounded-lg hover:bg-[#14F195]/90 transition-colors"
+                                        >
+                                            <PlusCircle className="mr-2 h-4 w-4" />{" "}
+                                            Add Task
+                                        </Button>
+                                    </div>
+                                    <Button
+                                        onClick={handleCreateProject}
+                                        className="w-full bg-[#14F195] text-black font-semibold py-3 rounded-lg hover:bg-[#14F195]/90 transition-opacity"
+                                    >
+                                        Create Project
+                                    </Button>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                        <WalletMultiButton />
+                    </div>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
                     {projects.map((project, index) => (
                         <motion.div
                             key={project.publicKey.toString()}
@@ -110,13 +351,10 @@ export default function Page() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: index * 0.1 }}
                         >
-                            <Card className="bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-lg border-gray-800 overflow-hidden group hover:shadow-lg hover:shadow-[#14F195]/20 transition-all duration-300">
+                            <Card className="bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-lg border border-gray-800 rounded-xl overflow-hidden group hover:shadow-lg hover:shadow-[#14F195]/20 transition-all duration-300">
                                 <CardHeader className="border-b border-gray-800 pb-4">
                                     <CardTitle className="text-xl font-semibold text-[#14F195] flex justify-between items-center">
                                         {project.name}
-                                        <span className="text-sm font-normal text-gray-400">
-                                            Deadline: {}
-                                        </span>
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="pt-4">
@@ -124,7 +362,7 @@ export default function Page() {
                                         <span className="text-gray-400">
                                             Stake:
                                         </span>
-                                        <span className="font-medium text-gray-300">
+                                        <span className="font-medium text-[#14F195]">
                                             {project.amount} SOL
                                         </span>
                                     </div>
@@ -171,7 +409,7 @@ export default function Page() {
                 </div>
 
                 <div className="bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-lg rounded-lg p-6 border border-gray-800">
-                    <h2 className="text-2xl font-semibold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#14F195] to-[#9945FF]">
+                    <h2 className="text-2xl font-semibold mb-6 text-[#14F195]">
                         Recent Transactions
                     </h2>
                     <ul className="space-y-4">

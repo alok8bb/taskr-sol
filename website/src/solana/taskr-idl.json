@@ -1,5 +1,5 @@
 {
-  "address": "t7SQXHqpHNQ71iVZj8AdGpWp7m2g3AqySkRD9kfuGwc",
+  "address": "tRdyXV9gBC74XFVxLJAbePcupThmd72rNvr9qonx9gX",
   "metadata": {
     "name": "taskr",
     "version": "0.1.0",
@@ -129,16 +129,16 @@
       ]
     },
     {
-      "name": "initialize",
+      "name": "ping",
       "discriminator": [
-        175,
-        175,
-        109,
-        31,
-        13,
-        152,
-        155,
-        237
+        173,
+        0,
+        94,
+        236,
+        73,
+        133,
+        225,
+        153
       ],
       "accounts": [],
       "args": []
@@ -209,6 +209,14 @@
           {
             "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "creation_time",
+            "type": "i64"
           }
         ]
       }
@@ -225,6 +233,12 @@
           {
             "name": "completed",
             "type": "bool"
+          },
+          {
+            "name": "pow",
+            "type": {
+              "option": "string"
+            }
           }
         ]
       }
