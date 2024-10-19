@@ -8,13 +8,14 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import type { Taskr } from "@/solana/taskr-types";
-import { AnchorProvider, setProvider, Program } from "@coral-xyz/anchor";
+import { AnchorProvider, setProvider, Program, BN } from "@coral-xyz/anchor";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, LAMPORTS_PER_SOL, Connection } from "@solana/web3.js";
 import idl from "@/solana/taskr-idl.json";
 import { Project } from "@/app/page";
 import { toast } from "@/hooks/use-toast";
 import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function ProjectDetails({
     params,
@@ -43,7 +44,6 @@ export default function ProjectDetails({
                     projectPda
                 );
 
-                console.log(projectAccount);
                 setProject({
                     ...projectAccount,
                     publicKey: projectPda,
@@ -57,7 +57,6 @@ export default function ProjectDetails({
                         status: task.completed ? "completed" : "in_progress",
                     }))
                 );
-                console.log(tasks);
             } catch (error) {
                 console.error("Error fetching project details:", error);
                 toast({
@@ -71,6 +70,26 @@ export default function ProjectDetails({
 
         getProjectDetails();
     }, []);
+
+    async function completeTask(taskId: number) {
+        try {
+            console.log(taskId);
+            await program.methods
+                .completeTask(project!.name, new BN(taskId - 1))
+                .rpc();
+            toast({
+                title: "Task completed",
+                description: "Your task has been successfully completed.",
+            });
+        } catch (error) {
+            console.error("Error completing task:", error);
+            toast({
+                title: "Error",
+                description: "Failed to complete the task. Please try again.",
+                variant: "destructive",
+            });
+        }
+    }
 
     return (
         <div className="min-h-screen bg-black text-white p-6 overflow-hidden relative">
@@ -207,9 +226,24 @@ export default function ProjectDetails({
                                                 </Badge>
                                                 <div className="text-white">
                                                     {project?.amount! /
-                                                        LAMPORTS_PER_SOL}{" "}
+                                                        LAMPORTS_PER_SOL /
+                                                        tasks.length}{" "}
                                                     SOL
                                                 </div>
+                                                {task.status !==
+                                                    "completed" && (
+                                                    <Button
+                                                        variant="outline"
+                                                        className="text-white bg-[#14F195] bg-opacity-20 border-[#14F195]"
+                                                        onClick={() =>
+                                                            completeTask(
+                                                                task.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Complete Task
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
                                     </CardContent>

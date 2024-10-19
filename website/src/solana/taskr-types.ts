@@ -5,197 +5,257 @@
  * IDL can be found at `target/idl/taskr.json`.
  */
 export type Taskr = {
-    address: "tRdyXV9gBC74XFVxLJAbePcupThmd72rNvr9qonx9gX";
-    metadata: {
-        name: "taskr";
-        version: "0.1.0";
-        spec: "0.1.0";
-        description: "Created with Anchor";
-    };
-    instructions: [
+  "address": "tbYd4CYZMmfY53sQvxWkmShy1WDyYF4RPAPvVUUAmtu",
+  "metadata": {
+    "name": "taskr",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "completeTask",
+      "discriminator": [
+        109,
+        167,
+        192,
+        41,
+        129,
+        108,
+        220,
+        196
+      ],
+      "accounts": [
         {
-            name: "completeTask";
-            discriminator: [109, 167, 192, 41, 129, 108, 220, 196];
-            accounts: [
-                {
-                    name: "project";
-                    writable: true;
-                    pda: {
-                        seeds: [
-                            {
-                                kind: "account";
-                                path: "signer";
-                            }
-                        ];
-                    };
-                },
-                {
-                    name: "signer";
-                    writable: true;
-                    signer: true;
-                },
-                {
-                    name: "systemProgram";
-                    address: "11111111111111111111111111111111";
-                }
-            ];
-            args: [
-                {
-                    name: "taskIndex";
-                    type: "u64";
-                }
-            ];
+          "name": "project",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "name"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
-            name: "createProject";
-            discriminator: [148, 219, 181, 42, 221, 114, 145, 190];
-            accounts: [
-                {
-                    name: "project";
-                    writable: true;
-                    pda: {
-                        seeds: [
-                            {
-                                kind: "arg";
-                                path: "name";
-                            },
-                            {
-                                kind: "account";
-                                path: "signer";
-                            }
-                        ];
-                    };
-                },
-                {
-                    name: "lookup";
-                    writable: true;
-                    pda: {
-                        seeds: [
-                            {
-                                kind: "const";
-                                value: [108, 111, 111, 107, 117, 112];
-                            },
-                            {
-                                kind: "account";
-                                path: "signer";
-                            }
-                        ];
-                    };
-                },
-                {
-                    name: "signer";
-                    writable: true;
-                    signer: true;
-                },
-                {
-                    name: "systemProgram";
-                    address: "11111111111111111111111111111111";
-                }
-            ];
-            args: [
-                {
-                    name: "name";
-                    type: "string";
-                },
-                {
-                    name: "tasks";
-                    type: {
-                        vec: "string";
-                    };
-                },
-                {
-                    name: "amount";
-                    type: "u64";
-                }
-            ];
+          "name": "signer",
+          "writable": true,
+          "signer": true
         },
         {
-            name: "ping";
-            discriminator: [173, 0, 94, 236, 73, 133, 225, 153];
-            accounts: [];
-            args: [];
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
-    ];
-    accounts: [
+      ],
+      "args": [
         {
-            name: "lookup";
-            discriminator: [213, 171, 172, 12, 138, 241, 9, 209];
+          "name": "name",
+          "type": "string"
         },
         {
-            name: "project";
-            discriminator: [205, 168, 189, 202, 181, 247, 142, 19];
+          "name": "taskIndex",
+          "type": "u64"
         }
-    ];
-    types: [
+      ]
+    },
+    {
+      "name": "createProject",
+      "discriminator": [
+        148,
+        219,
+        181,
+        42,
+        221,
+        114,
+        145,
+        190
+      ],
+      "accounts": [
         {
-            name: "lookup";
-            type: {
-                kind: "struct";
-                fields: [
-                    {
-                        name: "projects";
-                        type: {
-                            vec: "pubkey";
-                        };
-                    }
-                ];
-            };
+          "name": "project",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "name"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
-            name: "project";
-            type: {
-                kind: "struct";
-                fields: [
-                    {
-                        name: "tasks";
-                        type: {
-                            vec: {
-                                defined: {
-                                    name: "task";
-                                };
-                            };
-                        };
-                    },
-                    {
-                        name: "name";
-                        type: "string";
-                    },
-                    {
-                        name: "amount";
-                        type: "u64";
-                    },
-                    {
-                        name: "owner";
-                        type: "pubkey";
-                    },
-                    {
-                        name: "creationTime";
-                        type: "i64";
-                    }
-                ];
-            };
+          "name": "lookup",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  111,
+                  111,
+                  107,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
         },
         {
-            name: "task";
-            type: {
-                kind: "struct";
-                fields: [
-                    {
-                        name: "name";
-                        type: "string";
-                    },
-                    {
-                        name: "completed";
-                        type: "bool";
-                    },
-                    {
-                        name: "pow";
-                        type: {
-                            option: "string";
-                        };
-                    }
-                ];
-            };
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
-    ];
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "tasks",
+          "type": {
+            "vec": "string"
+          }
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "ping",
+      "discriminator": [
+        173,
+        0,
+        94,
+        236,
+        73,
+        133,
+        225,
+        153
+      ],
+      "accounts": [],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "lookup",
+      "discriminator": [
+        213,
+        171,
+        172,
+        12,
+        138,
+        241,
+        9,
+        209
+      ]
+    },
+    {
+      "name": "project",
+      "discriminator": [
+        205,
+        168,
+        189,
+        202,
+        181,
+        247,
+        142,
+        19
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "lookup",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "projects",
+            "type": {
+              "vec": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "project",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "tasks",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "task"
+                }
+              }
+            }
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "creationTime",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "task",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "completed",
+            "type": "bool"
+          },
+          {
+            "name": "pow",
+            "type": {
+              "option": "string"
+            }
+          }
+        ]
+      }
+    }
+  ]
 };

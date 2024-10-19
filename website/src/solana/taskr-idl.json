@@ -1,5 +1,5 @@
 {
-  "address": "tRdyXV9gBC74XFVxLJAbePcupThmd72rNvr9qonx9gX",
+  "address": "tbYd4CYZMmfY53sQvxWkmShy1WDyYF4RPAPvVUUAmtu",
   "metadata": {
     "name": "taskr",
     "version": "0.1.0",
@@ -26,6 +26,10 @@
           "pda": {
             "seeds": [
               {
+                "kind": "arg",
+                "path": "name"
+              },
+              {
                 "kind": "account",
                 "path": "signer"
               }
@@ -43,6 +47,10 @@
         }
       ],
       "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
         {
           "name": "task_index",
           "type": "u64"
