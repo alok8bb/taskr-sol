@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("tRdyXV9gBC74XFVxLJAbePcupThmd72rNvr9qonx9gX");
+declare_id!("tbYd4CYZMmfY53sQvxWkmShy1WDyYF4RPAPvVUUAmtu");
 
 #[program]
 pub mod taskr {
@@ -51,7 +51,7 @@ pub mod taskr {
         Ok(())
     }
 
-    pub fn complete_task(ctx: Context<CompleteTask>, task_index: u64) -> Result<()> {
+    pub fn complete_task(ctx: Context<CompleteTask>, name: String, task_index: u64) -> Result<()> {
         let project = &mut ctx.accounts.project;
         let task = &mut project.tasks[task_index as usize];
         task.completed = true;
@@ -103,8 +103,9 @@ pub struct Task {
 }
 
 #[derive(Accounts)]
+#[instruction(name: String)]
 pub struct CompleteTask<'info> {
-    #[account(mut, seeds = [signer.key().as_ref()], bump)]
+    #[account(mut, seeds = [name.as_bytes(), signer.key().as_ref()], bump)]
     pub project: Account<'info, Project>,
     #[account(mut)]
     pub signer: Signer<'info>,

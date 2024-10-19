@@ -55,7 +55,7 @@ describe("taskr", () => {
 
         for (let i = 0; i < 2; i++) {
             const tx = await program.methods
-                .completeTask(new anchor.BN(i))
+                .completeTask("Yearly Goals", new anchor.BN(i))
                 .rpc();
             console.log(`Complete task ${i + 1} transaction signature`, tx);
 
