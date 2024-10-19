@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import dynamic from "next/dynamic";
 import {
     useAnchorWallet,
     useConnection,
@@ -22,9 +22,17 @@ import {
 import { AnchorProvider, BN, Program, setProvider } from "@coral-xyz/anchor";
 import idl from "@/solana/taskr-idl.json";
 import type { Taskr } from "@/solana/taskr-types";
-import { PlusCircle, X, Ghost } from "lucide-react";
+import { PlusCircle, X, Ghost, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+
+const WalletMultiButton = dynamic(
+    () =>
+        import("@solana/wallet-adapter-react-ui").then(
+            (mod) => mod.WalletMultiButton
+        ),
+    { ssr: false }
+);
 
 export type Task = {
     name: string;
@@ -39,17 +47,9 @@ export type Project = {
 };
 
 export default function Page() {
+    const [isClientSide, setIsClientSide] = useState(false);
     const wallet = useAnchorWallet();
-
-    const provider = new AnchorProvider(
-        new Connection("https://api.devnet.solana.com"),
-        wallet!,
-        {}
-    );
-    setProvider(provider);
-
-    const program = new Program(idl as Taskr, provider);
-
+    const { connection } = useConnection();
     const [projects, setProjects] = useState<Project[]>([]);
     const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
     const [newProject, setNewProject] = useState({
@@ -57,8 +57,26 @@ export default function Page() {
         stake: "",
         tasks: [""],
     });
+    const [isLoading, setIsLoading] = useState(true);
+
+    const provider = new AnchorProvider(connection, wallet!, {});
+    setProvider(provider);
+    const program = new Program(idl as Taskr, provider);
+
+    useEffect(() => {
+        setIsClientSide(true);
+    }, []);
+
+    useEffect(() => {
+        if (isClientSide && wallet) {
+            getProjects();
+        } else if (isClientSide) {
+            setIsLoading(false);
+        }
+    }, [isClientSide, wallet]);
 
     const getProjects = async () => {
+        setIsLoading(true);
         const userPublicKey = wallet?.publicKey;
         if (userPublicKey) {
             try {
@@ -85,7 +103,6 @@ export default function Page() {
                             }
                         )
                     );
-                    console.log(fetchedProjects);
                     setProjects(fetchedProjects);
                 } else {
                     console.log("No projects found");
@@ -99,12 +116,8 @@ export default function Page() {
             console.log("Wallet not connected");
             setProjects([]);
         }
+        setIsLoading(false);
     };
-    const w = useWallet();
-
-    useEffect(() => {
-        getProjects();
-    }, [wallet]);
 
     const handleAddTask = () => {
         setNewProject((prev) => ({ ...prev, tasks: [...prev.tasks, ""] }));
@@ -153,6 +166,7 @@ export default function Page() {
         }
 
         try {
+            setIsLoading(true);
             console.log("Creating project:", newProject);
 
             await program.methods
@@ -174,7 +188,7 @@ export default function Page() {
                 stake: "",
                 tasks: [""],
             });
-            getProjects();
+            await getProjects(); // Re-fetch projects after creation
         } catch (error) {
             console.error("Error creating project:", error);
             toast({
@@ -183,8 +197,14 @@ export default function Page() {
                     "An error occurred while creating the project. Please try again.",
                 variant: "destructive",
             });
+        } finally {
+            setIsLoading(false);
         }
     };
+
+    if (!isClientSide) {
+        return null; // or a loading spinner
+    }
 
     return (
         <div className="min-h-screen bg-black text-white p-6 overflow-hidden relative">
@@ -338,7 +358,12 @@ export default function Page() {
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 min-h-[60vh]">
-                    {projects.length > 0 ? (
+                    {isLoading ? (
+                        <div className="col-span-3 flex flex-col items-center justify-center h-full text-gray-400">
+                            <Loader2 size={64} className="mb-4 animate-spin" />
+                            <p className="text-xl">Loading projects...</p>
+                        </div>
+                    ) : projects.length > 0 ? (
                         projects.map((project, index) => (
                             <motion.div
                                 key={project.publicKey.toString()}

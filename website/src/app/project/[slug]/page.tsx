@@ -3,18 +3,22 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Circle, AlertCircle, Ghost } from "lucide-react";
+import {
+    CheckCircle2,
+    Circle,
+    AlertCircle,
+    Ghost,
+    Loader2,
+} from "lucide-react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import type { Taskr } from "@/solana/taskr-types";
 import { AnchorProvider, setProvider, Program, BN } from "@coral-xyz/anchor";
-import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, LAMPORTS_PER_SOL, Connection } from "@solana/web3.js";
 import idl from "@/solana/taskr-idl.json";
 import { Project } from "@/app/page";
 import { toast } from "@/hooks/use-toast";
-import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 export default function ProjectDetails({
@@ -35,52 +39,56 @@ export default function ProjectDetails({
 
     const [project, setProject] = useState<Project | null>(null);
     const [tasks, setTasks] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const getProjectDetails = async () => {
+        setIsLoading(true);
+        try {
+            const projectPda = new PublicKey(projectId as string);
+            const projectAccount = await program.account.project.fetch(
+                projectPda
+            );
+
+            setProject({
+                ...projectAccount,
+                publicKey: projectPda,
+                amount: projectAccount.amount.toNumber(),
+            });
+
+            setTasks(
+                projectAccount.tasks.map((task: any, index: number) => ({
+                    id: index + 1,
+                    name: task.name,
+                    status: task.completed ? "completed" : "in_progress",
+                }))
+            );
+        } catch (error) {
+            console.error("Error fetching project details:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description:
+                    "Failed to fetch project details. Please try again.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const getProjectDetails = async () => {
-            try {
-                const projectPda = new PublicKey(projectId as string);
-                const projectAccount = await program.account.project.fetch(
-                    projectPda
-                );
-
-                setProject({
-                    ...projectAccount,
-                    publicKey: projectPda,
-                    amount: projectAccount.amount.toNumber(),
-                });
-
-                setTasks(
-                    projectAccount.tasks.map((task: any, index: number) => ({
-                        id: index + 1,
-                        name: task.name,
-                        status: task.completed ? "completed" : "in_progress",
-                    }))
-                );
-            } catch (error) {
-                console.error("Error fetching project details:", error);
-                toast({
-                    variant: "destructive",
-                    title: "Error",
-                    description:
-                        "Failed to fetch project details. Please try again.",
-                });
-            }
-        };
-
         getProjectDetails();
     }, []);
 
     async function completeTask(taskId: number) {
         try {
-            console.log(taskId);
             await program.methods
                 .completeTask(project!.name, new BN(taskId - 1))
                 .rpc();
             toast({
                 title: "Task completed",
-                description: "Your task has been successfully completed.",
+                description: "Your task transaction has been sent.",
             });
+            await getProjectDetails();
         } catch (error) {
             console.error("Error completing task:", error);
             toast({
@@ -88,6 +96,8 @@ export default function ProjectDetails({
                 description: "Failed to complete the task. Please try again.",
                 variant: "destructive",
             });
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -110,7 +120,19 @@ export default function ProjectDetails({
                 </header>
 
                 <div className="mb-12">
-                    {project ? (
+                    {isLoading ? (
+                        <Card className="bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-lg border-gray-800 overflow-hidden">
+                            <CardContent className="flex flex-col items-center justify-center py-12">
+                                <Loader2
+                                    size={64}
+                                    className="mb-4 text-gray-400 animate-spin"
+                                />
+                                <p className="text-xl text-gray-400">
+                                    Loading project details...
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ) : project ? (
                         <Card className="bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-lg border-gray-800 overflow-hidden">
                             <CardHeader className="border-b border-gray-800 pb-4">
                                 <CardTitle className="text-2xl font-semibold text-[#14F195] flex justify-between items-center">
@@ -173,7 +195,7 @@ export default function ProjectDetails({
                     )}
                 </div>
 
-                {tasks.length > 0 && (
+                {!isLoading && tasks.length > 0 && (
                     <div className="space-y-6">
                         <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#14F195] to-[#9945FF]">
                             Project Tasks
@@ -225,9 +247,11 @@ export default function ProjectDetails({
                                                         : "Not Started"}
                                                 </Badge>
                                                 <div className="text-white">
-                                                    {project?.amount! /
+                                                    {(
+                                                        project?.amount! /
                                                         LAMPORTS_PER_SOL /
-                                                        tasks.length}{" "}
+                                                        tasks.length
+                                                    ).toFixed(2)}{" "}
                                                     SOL
                                                 </div>
                                                 {task.status !==
