@@ -40,8 +40,8 @@ describe("taskr", () => {
     it("creates a project", async () => {
         const tx = await program.methods
             .createProject(
-                "Test Project",
-                ["Test Task 1", "Test Task 2"],
+                "Yearly Goals",
+                ["Get a new job", "Save $10,000", "Learn to code"],
                 new anchor.BN(1)
             )
             .rpc();

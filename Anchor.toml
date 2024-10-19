@@ -5,17 +5,17 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-taskr = "Fo8rfUMhKbc3FQaVWcrVzX9f49bhYZgf1gsdSPuoNsqF"
+taskr = "t7SQXHqpHNQ71iVZj8AdGpWp7m2g3AqySkRD9kfuGwc"
 
 [programs.devnet]
-taskr = "Fo8rfUMhKbc3FQaVWcrVzX9f49bhYZgf1gsdSPuoNsqF"
+taskr = "t7SQXHqpHNQ71iVZj8AdGpWp7m2g3AqySkRD9kfuGwc"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
-# cluster = "devnet"
+# cluster = "Localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

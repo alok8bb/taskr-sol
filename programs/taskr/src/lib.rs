@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("Fo8rfUMhKbc3FQaVWcrVzX9f49bhYZgf1gsdSPuoNsqF");
+declare_id!("t7SQXHqpHNQ71iVZj8AdGpWp7m2g3AqySkRD9kfuGwc");
 
 #[program]
 pub mod taskr {
@@ -23,6 +23,7 @@ pub mod taskr {
         amount: u64,
     ) -> Result<()> {
         let project = &mut ctx.accounts.project;
+        let lookup = &mut ctx.accounts.lookup;
         project.name = name;
         project.tasks = tasks
             .into_iter()
@@ -32,7 +33,7 @@ pub mod taskr {
             })
             .collect();
         project.amount = amount;
-
+        lookup.projects.push(project.key());
         system_program::transfer(
             CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),
@@ -63,9 +64,14 @@ pub mod taskr {
 pub struct Initialize {}
 
 #[derive(Accounts)]
+#[instruction(name: String)]
 pub struct CreateProject<'info> {
-    #[account(init, payer = signer, seeds = [signer.key().as_ref()], bump, space = 8 + Project::INIT_SPACE)]
+    #[account(init, payer = signer, seeds = [name.as_bytes(), signer.key().as_ref()], bump, space = 8 + Project::INIT_SPACE)]
     pub project: Account<'info, Project>,
+
+    #[account(init_if_needed, payer = signer, seeds = [b"lookup", signer.key().as_ref()], bump, space = 8 + Lookup::INIT_SPACE)]
+    pub lookup: Account<'info, Lookup>,
+
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -96,4 +102,11 @@ pub struct CompleteTask<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info, System>,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct Lookup {
+    #[max_len(30)]
+    pub projects: Vec<Pubkey>,
 }
